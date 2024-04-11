@@ -1,0 +1,23 @@
+#!/bin/bash
+
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <directory>"
+  exit 1
+fi
+
+directory="$1"
+
+if [ ! -d "$directory" ]; then
+  echo "Error: Directory $directory does not exist."
+  exit 1
+fi
+
+echo "Finding file with max space utilization in $directory..."
+max_file=$(du -h --max-depth=1 "$directory" | sort -rh | head -n 1)
+
+if [ -n "$max_file" ]; then
+  echo "File with max space utilization:"
+  echo "$max_file"
+else
+  echo "No files found in $directory."
+fi

@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Check if the server is running Ubuntu or Red Hat
+if [[ -f /etc/redhat-release ]]; then
+    echo "This is a Red Hat server."
+    distro="redhat"
+elif [[ -f /etc/lsb-release ]]; then
+    . /etc/lsb-release
+    if [[ "$DISTRIB_ID" == "Ubuntu" ]]; then
+        echo "This is an Ubuntu server."
+        distro="ubuntu"
+    fi
+else
+    echo "Unknown distribution."
+    exit 1
+fi
+
+# Check if a process name was passed as an argument
+if [[ -z "$1" ]]; then
+    echo "Please pass a process name as an argument."
+    exit 1
+fi
+
+# Check memory usage by the specified process
+mem_usage=$(ps -o rss= -p $(pgrep -x $1) | awk '{ sum += $1 } END { if (NR > 0) print sum/1024/1024 }')
+echo "Memory usage by process '$1': ${mem_usage} MB"
+
+# Check CPU usage by the specified process
+cpu_usage=$(ps -p $(pgrep -x $1) -o %cpu | awk '{ sum += $1 } END { if (NR > 0) print sum }')
+echo "CPU usage by process '$1': ${cpu_usage}%"
+
+# Check total CPU usage
+cpu_count=$(nproc)
+cpu_usage=$(top -bn1 | grep "Cpu(s)" | sed "s/.*, *\([0-9.]*\)%* id.*/\1/" | awk '{print 100 - $1}')
+echo "Total CPU usage: ${cpu_usage}%"
